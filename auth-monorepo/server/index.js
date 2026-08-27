@@ -7,7 +7,29 @@ const requireAuth = require('./middleware/auth');
 require('dotenv').config();
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL || 'https://auth-monorepo1-two.vercel.app' || 'http://localhost:3000' || 'https://auth-monorepo1.onrender.com' }));
+
+// Normalize allowed origins: split on commas, trim, strip trailing slashes.
+// This avoids the common pitfall where one origin is stored with a trailing
+// "/" in env vars and silently breaks CORS.
+const allowedOrigins = (process.env.CLIENT_URL || 'https://auth-monorepo1-two.vercel.app')
+  .split(',')
+  .map((o) => o.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow same-origin / curl / server-to-server requests (no Origin header).
+      if (!origin) return callback(null, true);
+      const cleanOrigin = origin.replace(/\/+$/, '');
+      if (allowedOrigins.includes(cleanOrigin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Health check — useful for confirming Render deploy is alive
