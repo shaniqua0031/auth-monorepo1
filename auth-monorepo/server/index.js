@@ -7,12 +7,12 @@ const requireAuth = require('./middleware/auth');
 require('dotenv').config();
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
+app.use(cors({ origin: process.env.CLIENT_URL || 'https://auth-monorepo1-two.vercel.app' || 'http://localhost:3000' }));
 app.use(express.json());
 
 // Health check — useful for confirming Render deploy is alive
-app.get('/', (req, res) => {
-  res.json({ status: 'ok' });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'server running' });
 });
 
 // REGISTER
